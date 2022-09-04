@@ -1,76 +1,51 @@
 #!/usr/bin/python3
-"""
-Module BaseModel
-This is the parent class for all models
-"""
+"""Defines the BaseModel class."""
+import models
 from uuid import uuid4
 from datetime import datetime
-import models
 
 
-class BaseModel():
-    """The Base class for the Airbnb console
-    Methods:
-        __init__(self)
-        __str__(self)
-        __save(self)
-        __repr__(self)
-        to_dict(self)
-    """
+class BaseModel:
+    """Represents the BaseModel of the HBnB project."""
 
     def __init__(self, *args, **kwargs):
+        """Initialize a new BaseModel.
+
+        Args:
+            *args (any): Unused.
+            **kwargs (dict): Key/value pairs of attributes.
         """
-        Initialize instance attributes id, created_at, updated_at
-        """
-        if kwargs:
-            for key, val in kwargs.items():
-                if key == "created_at":
-                    self.created_at = datetime.strptime(kwargs['created_at'],
-                                                        "%Y-%m-%dT%H:%M:%S.%f")
-                elif key == "updated_at":
-                    self.updated_at = datetime.strptime(kwargs['updated_at'],
-                                                        "%Y-%m-%dT%H:%M:%S.%f")
-                elif key == "__class__":
-                    pass
+        tform = "%Y-%m-%dT%H:%M:%S.%f"
+        self.id = str(uuid4())
+        self.created_at = datetime.today()
+        self.updated_at = datetime.today()
+        if len(kwargs) != 0:
+            for k, v in kwargs.items():
+                if k == "created_at" or k == "updated_at":
+                    self.__dict__[k] = datetime.strptime(v, tform)
                 else:
-                    setattr(self, key, val)
+                    self.__dict__[k] = v
         else:
-            self.id = str(uuid4())
-            self.created_at = datetime.now()
-            self.updated_at = datetime.now()
             models.storage.new(self)
 
-    def __str__(self):
-        """
-        Return the string represention of the model object
-        """
-        return ("[{}] ({}) {}".
-                format(self.__class__.__name__, self.id, self.__dict__))
-
-    def __repr__(self):
-        """
-        Returns the string representation of the model object
-        """
-        return (self.__str__())
-
     def save(self):
-        """
-        Update the instance attribute updated_at with updated time
-        and save to serialized file
-        """
-        self.updated_at = datetime.now()
+        """Update updated_at with the current datetime."""
+        self.updated_at = datetime.today()
         models.storage.save()
 
     def to_dict(self):
+        """Return the dictionary of the BaseModel instance.
+
+        Includes the key/value pair __class__ representing
+        the class name of the object.
         """
-        Returns a dictionary containing all keys/values
-        of __dict__ of the instance
-        """
-        dic = {}  # create an empty dict
-        dic["__class__"] = self.__class__.__name__
-        for k, val in self.__dict__.items():
-            if isinstance(val, datetime):  # if pair is of datetime instance
-                dic[k] = val.isoformat()  # or strftime(%Y-%m-%dT%H:%M:%S.%f)
-            else:
-                dic[k] = val
-        return dic
+        rdict = self.__dict__.copy()
+        rdict["created_at"] = self.created_at.isoformat()
+        rdict["updated_at"] = self.updated_at.isoformat()
+        rdict["__class__"] = self.__class__.__name__
+        return rdict
+
+    def __str__(self):
+        """Return the print/str representation of the BaseModel instance."""
+        clname = self.__class__.__name__
+        return "[{}] ({}) {}".format(clname, self.id, self.__dict__)
